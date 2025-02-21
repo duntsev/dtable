@@ -1,0 +1,14 @@
+{
+    "name": "duntsev/dtable",
+    "description": "dtable",
+    "type": "library",
+    "require": {
+        "php": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "dTable\\": "src/dTable"
+        }
+    }
+    
+}
