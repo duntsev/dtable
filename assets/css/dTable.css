@@ -47,3 +47,9 @@ table.table-dtable tbody tr {
   height: 1px;
 }
 /* --доп.скролл */
+
+/* Наборы колонок */
+.dTableSetsButtons a{
+  font-size: 24px;
+}
+/* --Наборы колонок */

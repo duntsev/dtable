@@ -8,6 +8,7 @@
     loadTableMethodUrl: SITE_URL + "/StudyProject/StudyProject",          // URL который возвращает dTable
     loadDictForFilterUrl: SITE_URL + "/StudyProject/get_dict_for_filter", // URL который возвращает фильтры
     isCache: true,                                                        // Кэшировать настройки таблицы. По умолчанию true
+    isColumnsSets: false,                                                 // Включить работу с Наборами колонок. По умолчанию false
     dTableDefault: {                                                      // Объект dTable для инициализации. Может быть закэширован
       v: VERSION                                                          // Версия. Для обновления объекта в хранилище в случае новой версии
       , page: 1                                                           // Текущая страница
@@ -33,6 +34,7 @@
   
     this.dTable = {};
     this.isCache = params.isCache ?? true;
+    this.isColumnsSets = params.isColumnsSets ?? false;
     this.dTableTitle = params.dTableTitle ?? '';
     this.dTableDefault = params.dTableDefault;
   
@@ -318,18 +320,182 @@
     // Нажатие на кнопку выбора колонок - Настроить
     $(dTableDOMObject).on('click', '.SelectColumns', function () {
   
-      thisDTable.drawSettingsFields();
+      thisDTable.drawSettingsFields(thisDTable.dTable['fields']);
   
       ModalSelectColumns.show();
   
+      // Подгрузка Сохраненных наборов колонок, если они включены
+      if(thisDTable.isColumnsSets){
+        $(ModalFilterSelectColumnsNode).find('.dTableSetsContainer').show();
+
+        thisDTable.dTableColumnsSetsLoad();
+      }
+      // --Подгрузка Сохраненных наборов колонок, если они включены
+
       return false;
     });
     // --Нажатие на кнопку выбора колонок - Настроить
+    //
+    // Подгрузка Сохраненных наборов колонок
+    this.dTableColumnsSetsLoad=function(selectedId){
+      let select=$(ModalFilterSelectColumnsNode).find('.dTableSavedSelect');
+      $(select).html('').prop('disabled',true);
+
+      $.ajax({
+        url: SITE_URL + "/default/dTableSetsGet",
+        data: JSON.stringify({
+          dTableName: dTableName
+        }),
+        type: "POST",
+        contentType: "application/json",
+        success: function (result) {
+          result.data.forEach(element => {
+            $(select).append('<option value="'+element.id+'" data-data="'+element.data+'">'+element.title+'</option>')
+          });
+          $(select).val(selectedId);
+          $(select).prop('disabled',false);
+        }
+      });
+    }
+    // --Подгрузка Сохраненных наборов колонок
+    // 
+    // Нажатие на кнопку добавления нового набора колонок
+    $(ModalFilterSelectColumnsNode).on('click', '.btn-new', function () {
   
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsEdit').show();
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsBlock').hide();
+
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').val('');
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').attr('data-id','');
+  
+      return false;
+    });
+    // --Нажатие на кнопку добавления нового набора колонок
+    // 
+    // Нажатие на кнопку изменить набора колонок
+    $(ModalFilterSelectColumnsNode).on('click', '.btn-edit', function () {
+  
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsEdit').show();
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsBlock').hide();
+
+      let cId=$(ModalFilterSelectColumnsNode).find('.dTableSavedSelect').val();
+      let cTitle=$(ModalFilterSelectColumnsNode).find('.dTableSavedSelect option:selected').html();
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').val(cTitle);
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').attr('data-id',cId);
+  
+      return false;
+    });
+    // --Нажатие на кнопку изменить набора колонок
+    // 
+    // Нажатие на кнопку Отмены добавления нового набора колонок
+    $(ModalFilterSelectColumnsNode).on('click', '.btn-cancel', function () {
+
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsEdit').hide();
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsBlock').show();
+  
+      return false;
+    });
+    // --Нажатие на кнопку Отмены добавления нового набора колонок
+    // 
+    // Нажатие на кнопку Сохранить добавления нового набора колонок
+    $(ModalFilterSelectColumnsNode).on('click', '.btn-save', function () {
+
+      $.ajax({
+        url: SITE_URL + "/default/dTableSetsSave",
+        data: JSON.stringify({
+          // dTable: thisDTable.dTable,
+          dTable: JSON.parse($(ModalFilterSelectColumnsNode).find('.dTableSavedSelect option:selected').attr('data-data')),
+          dTableSavedName: dTableName,
+          dTableSetsTitle: $(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').val(),
+          dTableSetsId: $(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').attr('data-id')
+        }),
+        type: "POST",
+        contentType: "application/json",
+        success: function (result) {
+          thisDTable.dTableColumnsSetsLoad(result.dTableSetsId);
+          Message('Набор колонок сохранён', 'success');
+        }
+      });
+
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsEdit').hide();
+      $(ModalFilterSelectColumnsNode).find('.dTableSetsBlock').show();
+  
+      return false;
+    });
+    // --Нажатие на кнопку Сохранить добавления нового набора колонок
+    // 
+    // Нажатие на кнопку pull добавления нового набора колонок
+    $(ModalFilterSelectColumnsNode).on('click', '.btn-pull', function () {
+      
+      let dTableData=$(ModalFilterSelectColumnsNode).find('.dTableSavedSelect option:selected').attr('data-data');
+      let savedFields=JSON.parse(dTableData).fields
+      
+      thisDTable.drawSettingsFields(savedFields);
+
+      return false;
+    });
+    // --Нажатие на кнопку pull добавления нового набора колонок
+    // 
+    // Нажатие на кнопку push добавления нового набора колонок
+    $(ModalFilterSelectColumnsNode).on('click', '.btn-push', function () {
+
+      let fields=thisDTable.ModalFilterSelectColumnsToObject();
+      
+      let dTableNew = JSON.parse(JSON.stringify(thisDTable.dTable)); // Простое присвоение для объекта приводит к присвоению ссыли на объект
+
+      dTableNew['fields'] = fields;
+      
+      let dTableSetsId=$(ModalFilterSelectColumnsNode).find('.dTableSavedSelect').val();
+      let cTitle=$(ModalFilterSelectColumnsNode).find('.dTableSavedSelect option:selected').html();
+
+      $.ajax({
+        url: SITE_URL + "/default/dTableSetsSave",
+        data: JSON.stringify({
+          dTable: dTableNew,
+          dTableSavedName: dTableName,
+          dTableSetsTitle: cTitle,
+          dTableSetsId: dTableSetsId
+        }),
+        type: "POST",
+        contentType: "application/json",
+        success: function (result) {
+          $(ModalFilterSelectColumnsNode).find('.dTableSavedSelect option:selected').attr('data-data',JSON.stringify(dTableNew))
+          // thisDTable.dTableColumnsSetsLoad(result.dTableSetsId);
+          Message('Набор колонок обновлён', 'success');
+        }
+      });
+
+      return false;
+    });
+    // --Нажатие на кнопку push добавления нового набора колонок
+    // 
+    // Нажатие на кнопку Удаления набора колонок
+    $(ModalFilterSelectColumnsNode).on('click', '.btn-remove', function () {
+
+      let dTableSetsId=$(ModalFilterSelectColumnsNode).find('.dTableSavedSelect').val();
+
+      $.ajax({
+        url: SITE_URL + "/default/dTableSetsRemove",
+        data: JSON.stringify({
+          dTableSetsId: dTableSetsId
+        }),
+        type: "POST",
+        contentType: "application/json",
+        success: function (result) {
+          thisDTable.dTableColumnsSetsLoad("");
+          Message('Набор колонок удалён', 'success');
+        }
+      });
+
+      return false;
+    });
+    // --Нажатие на кнопку Удаления набора колонок
+  
+    
     /**
      * Прорисовка колонок в модальном окне Настроить колонки
      */
-    this.drawSettingsFields = function () {
+    this.drawSettingsFields = function (dTableFields) {
       //
       // Сбросим значения
       $(ModalFilterSelectColumnsNode).find('.dTableColumns .columns-selected').html('');
@@ -343,28 +509,28 @@
       let categroys = [];
       // --Цвета категорий
   
-      for (key in thisDTable.dTable['fields']) {
+      for (key in dTableFields) {
         let dTableColumns = '';
         //      l(dTable['fields'][key]['show'])
-        let isShow = thisDTable.dTable['fields'][key]['show'] == '1';
+        let isShow = dTableFields[key]['show'] == '1';
         // let disabled = '';// key == 'FIO' ? ' disabled' : '';
         // let elementId = "dTableColumn-" + key;
         dTableColumns += '<a href="#" class="dTableColumn list-group-item list-group-item-action d-flex" data-name="' + key + '">';
         dTableColumns += '<i class="fa fa-arrows p-1 pe-2"></i>';
         // dTableColumns += '<input class="form-check-input" type="checkbox" value="" ' + checked + disabled + ' id="' + elementId + '">';
         dTableColumns += ' <div class="">';
-        dTableColumns += '<span class="columnTitle" title="' + thisDTable.dTable['fields'][key]['title'] + '">' +
-          thisDTable.dTable['fields'][key]['title'] +
+        dTableColumns += '<span class="columnTitle" title="' + dTableFields[key]['title'] + '">' +
+        dTableFields[key]['title'] +
           '</span>';
-          if (thisDTable.dTable['fields'][key]['ordType'] === 'asc') {
+          if (dTableFields[key]['ordType'] === 'asc') {
             dTableColumns += '<i class="fa fa-long-arrow-up p-1 pe-2"></i>';
-          } else if (thisDTable.dTable['fields'][key]['ordType'] === 'desc') {
+          } else if (dTableFields[key]['ordType'] === 'desc') {
             dTableColumns += '<i class="fa fa-long-arrow-down p-1 pe-2"></i>';
           }
         dTableColumns += '</div>';
         //
         // Категория
-        let cat = thisDTable.dTable['fields'][key]['category'] || '';
+        let cat = dTableFields[key]['category'] || '';
         let categroyStyle = '';
         if (cat.length) {
           if (categroys.indexOf(cat) === -1) {
@@ -442,9 +608,12 @@
     $(ModalFilterSelectColumnsNode).on('click', '.input-text-reset-button', function () {
       $(this).prev('input').val('').keyup();
     });
-    // Форма Настроить колонки - Нажатие на Применить
-    $(ModalFilterSelectColumnsNode).on('click', '.btn-primary', function () {
-  
+
+    /**
+     * Выбранные колонки в окне настроек - в объект
+     */
+    this.ModalFilterSelectColumnsToObject = function () {
+
       // Пересортируем fields
       let fields = {};
   
@@ -461,6 +630,15 @@
         fields[name]['show'] = "0";
       });
       //    l(fields);
+
+      return fields;
+    }
+
+    // Форма Настроить колонки - Нажатие на Применить
+    $(ModalFilterSelectColumnsNode).on('click', '.btn-primary', function () {
+  
+      let fields=thisDTable.ModalFilterSelectColumnsToObject();
+      
       thisDTable.dTable['fields'] = fields;
       thisDTable.savedTableToCookie(thisDTable.dTable);
       ModalSelectColumns.hide();

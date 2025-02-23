@@ -104,6 +104,49 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
+
+          <div class="dTableSetsContainer" style="display:none">
+            <div class="dTableSetsBlock row align-items-end mb-3">
+              <div class="col">
+                <label for="" class="form-label">Сохранённые наборы колонок</label>
+                <select class="form-select dTableSavedSelect">
+                </select>
+              </div>
+              <div class="col-auto">
+                <div class="dTableSetsButtons">
+                  <a class="text-decoration-none btn-pull" href="#" title="Загрузить колонки из набора">
+                    <i class="align-middle fa fa-arrow-down"></i>
+                  </a>
+                  <a class="text-decoration-none btn-push" href="#" title="Сохранить колонки в набор">
+                    <i class="align-middle fa fa-cloud-arrow-up"></i>
+                  </a>
+                  <a class="text-decoration-none btn-edit" href="#" title="Изменить наименование набора">
+                    <i class="align-middle fa fa-pencil"></i>
+                  </a>
+                  <a class="text-decoration-none btn-remove" href="#" title="Удалить набор">
+                    <i class="align-middle fa fa-trash-can"></i>
+                  </a>
+                  <a class="text-decoration-none btn-new" href="#" title="Новый набор">
+                    <i class="align-middle fa fa-plus"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          
+            <div class="dTableSetsEdit row align-items-end mb-3" style="display:none">
+              <div class="col">
+                <label for="" class="form-label required">Наименование набора колонок</label>
+                <input class="form-control dTableSetsTitle" type="text" required="">
+              </div>
+              <div class="col-auto">
+                <div class="">
+                  <a class="btn btn-save">Сохранить</a>
+                  <a class="btn btn-cancel">Отмена</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div class="dTableColumns mb-3 row">
             <div class="col-6 text-muted">Видимые колонки</div>
             <div class="col-6 text-muted">Остальные колонки</div>
@@ -124,7 +167,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-reset" data-bs-dismiss="modal" title="Сбросить настройки">Сбросить <i class="fa fa-refresh"></i></button>
+          <button type="button" class="btn btn-secondary btn-reset" data-bs-dismiss="modal" title="Сбросить настройки">Сбросить <i class="fa fa-refresh ps-1"></i></button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
           <button type="button" class="btn btn-primary">Применить</button>
         </div>
