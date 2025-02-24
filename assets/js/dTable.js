@@ -400,14 +400,21 @@
     // Нажатие на кнопку Сохранить добавления нового набора колонок
     $(ModalFilterSelectColumnsNode).on('click', '.btn-save', function () {
 
+      let dTableSetsId=$(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').attr('data-id');
+      
+      let dTableJSON=JSON.parse("{}");  // При добавлении объект будет пустой
+      if(dTableSetsId.length){
+        dTableJSON=JSON.parse($(ModalFilterSelectColumnsNode).find('.dTableSavedSelect option:selected').attr('data-data'));
+      }
+
       $.ajax({
         url: SITE_URL + "/default/dTableSetsSave",
         data: JSON.stringify({
           // dTable: thisDTable.dTable,
-          dTable: JSON.parse($(ModalFilterSelectColumnsNode).find('.dTableSavedSelect option:selected').attr('data-data')),
+          dTable: dTableJSON,
           dTableSavedName: dTableName,
           dTableSetsTitle: $(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').val(),
-          dTableSetsId: $(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').attr('data-id')
+          dTableSetsId: dTableSetsId
         }),
         type: "POST",
         contentType: "application/json",

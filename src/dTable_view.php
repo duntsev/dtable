@@ -114,19 +114,19 @@
               </div>
               <div class="col-auto">
                 <div class="dTableSetsButtons">
-                  <a class="text-decoration-none btn-pull" href="#" title="Загрузить колонки из набора">
+                  <a class="text-decoration-none btn btn-pull" href="#" title="Загрузить колонки из набора">
                     <i class="align-middle fa fa-arrow-down"></i>
                   </a>
-                  <a class="text-decoration-none btn-push" href="#" title="Сохранить колонки в набор">
+                  <a class="text-decoration-none btn btn-push" href="#" title="Сохранить колонки в набор">
                     <i class="align-middle fa fa-cloud-arrow-up"></i>
                   </a>
-                  <a class="text-decoration-none btn-edit" href="#" title="Изменить наименование набора">
+                  <a class="text-decoration-none btn btn-edit" href="#" title="Изменить наименование набора">
                     <i class="align-middle fa fa-pencil"></i>
                   </a>
-                  <a class="text-decoration-none btn-remove" href="#" title="Удалить набор">
+                  <a class="text-decoration-none btn btn-remove" href="#" title="Удалить набор">
                     <i class="align-middle fa fa-trash-can"></i>
                   </a>
-                  <a class="text-decoration-none btn-new" href="#" title="Новый набор">
+                  <a class="text-decoration-none btn btn-new" href="#" title="Новый набор">
                     <i class="align-middle fa fa-plus"></i>
                   </a>
                 </div>
