@@ -401,8 +401,14 @@
     // Нажатие на кнопку Сохранить добавления нового набора колонок
     $(ModalFilterSelectColumnsNode).on('click', '.btn-save', function () {
 
+      let dTableSetsTitle=$(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').val();
       let dTableSetsId=$(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').attr('data-id');
-      
+
+      if(dTableSetsTitle.length === 0){
+        Message('Введите наименование', 'danger');
+        return false;
+      }
+
       let dTableJSON=JSON.parse("{}");  // При добавлении объект будет пустой
       if(dTableSetsId.length){
         dTableJSON=JSON.parse($(ModalFilterSelectColumnsNode).find('.dTableSavedSelect option:selected').attr('data-data'));
@@ -421,7 +427,7 @@
           // dTable: thisDTable.dTable,
           dTable: dTableJSON,
           dTableSavedName: dTableName,
-          dTableSetsTitle: $(ModalFilterSelectColumnsNode).find('.dTableSetsTitle').val(),
+          dTableSetsTitle: dTableSetsTitle,
           dTableSetsId: dTableSetsId
         }),
         type: "POST",
@@ -568,6 +574,9 @@
             dTableColumns += '<i class="fa fa-long-arrow-up p-1 pe-2"></i>';
           } else if (dTableFields[key]['ordType'] === 'desc') {
             dTableColumns += '<i class="fa fa-long-arrow-down p-1 pe-2"></i>';
+          }
+          if ('filter' in dTableFields[key]) {
+            dTableColumns += '<i class="fa fa-filter p-1 pe-2"></i>';
           }
         dTableColumns += '</div>';
         //
