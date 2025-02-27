@@ -67,7 +67,7 @@
   
     if (dTableFromCookie === undefined || dTableFromCookie === null || dTableFromCookie.length === 0 || !this.isCache) {
       // Нет в куки или кэширование отключено
-      thisDTable.dTable = JSON.parse(JSON.stringify(thisDTable.dTableDefault)); // Простое присвоение для объекта приводит к присвоению ссыли на объект
+      thisDTable.dTable = JSON.parse(JSON.stringify(thisDTable.dTableDefault)); // Простое присвоение для объекта приводит к присвоению ссылки на объект
     } else {
       // Есть в куки
       let dTableFromCookieJSON = JSON.parse(dTableFromCookie);
@@ -75,7 +75,7 @@
       // Если текущая версия не совпадает с версией в куки, обновляем куки
       if (dTableFromCookieJSON['versionInstanceCache'] !== thisDTable.dTableDefault['versionInstanceCache'] ||
         dTableFromCookieJSON['versionDTableCache'] !== thisDTable.versionDTableCache) {
-        thisDTable.dTable = JSON.parse(JSON.stringify(thisDTable.dTableDefault)); // Простое присвоение для объекта приводит к присвоению ссыли на объект
+        thisDTable.dTable = JSON.parse(JSON.stringify(thisDTable.dTableDefault)); // Простое присвоение для объекта приводит к присвоению ссылки на объект
         thisDTable.savedTableToCookie(thisDTable.dTable);
       } else {
         thisDTable.dTable = dTableFromCookieJSON;
@@ -462,7 +462,7 @@
 
       let fields=thisDTable.ModalFilterSelectColumnsToObject();
       
-      let dTableNew = JSON.parse(JSON.stringify(thisDTable.dTable)); // Простое присвоение для объекта приводит к присвоению ссыли на объект
+      let dTableNew = JSON.parse(JSON.stringify(thisDTable.dTable)); // Простое присвоение для объекта приводит к присвоению ссылки на объект
 
       dTableNew['fields'] = fields;
       
@@ -558,12 +558,16 @@
       // --Цвета категорий
   
       for (key in dTableFields) {
+
         let dTableColumns = '';
-        //      l(dTable['fields'][key]['show'])
         let isShow = dTableFields[key]['show'] == '1';
-        // let disabled = '';// key == 'FIO' ? ' disabled' : '';
-        // let elementId = "dTableColumn-" + key;
-        dTableColumns += '<a href="#" class="dTableColumn list-group-item list-group-item-action d-flex" data-name="' + key + '">';
+
+        let filterObj=JSON.stringify({v:dTableFields[key]['filter']});
+        let filterEncoded = btoa(encodeURIComponent(filterObj));
+
+        let ordType=dTableFields[key]['ordType'] || '';
+
+        dTableColumns += '<a href="#" class="dTableColumn list-group-item list-group-item-action d-flex" data-name="' + key + '" data-title="' + dTableFields[key]['title'] + '" data-category="' + dTableFields[key]['category'] + '" data-filter="' + filterEncoded + '" data-ord-type="' + ordType + '">';
         dTableColumns += '<i class="fa fa-arrows p-1 pe-2"></i>';
         // dTableColumns += '<input class="form-check-input" type="checkbox" value="" ' + checked + disabled + ' id="' + elementId + '">';
         dTableColumns += ' <div class="">';
@@ -670,17 +674,50 @@
   
       $(ModalFilterSelectColumnsNode).find('.dTableColumns .columns-selected .dTableColumn').each(function () {
         let name = $(this).attr('data-name');
+        let title = $(this).attr('data-title');
+        let filter = $(this).attr('data-filter');
+        let category = $(this).attr('data-category');
+        let ordType = $(this).attr('data-ord-type');
   
-        fields[name] = thisDTable.dTable['fields'][name];
-        fields[name]['show'] = "1";
+        fields[name] = {
+          'show': '1',
+          'title': title,
+          'category': category
+        };
+
+        if(filter.length){
+          let filterObj=JSON.parse(decodeURIComponent(atob(filter)));
+          if(filterObj.v !== undefined){
+            fields[name]['filter']=filterObj.v;
+          }
+        }
+        if(ordType.length){
+          fields[name]['ordType']=ordType;
+        }
       });
       $(ModalFilterSelectColumnsNode).find('.dTableColumns .columns-other .dTableColumn').each(function () {
         let name = $(this).attr('data-name');
+        let title = $(this).attr('data-title');
+        let filter = $(this).attr('data-filter');
+        let category = $(this).attr('data-category');
+        let ordType = $(this).attr('data-ord-type');
   
-        fields[name] = thisDTable.dTable['fields'][name];
-        fields[name]['show'] = "0";
+        fields[name] = {
+          'show': '0',
+          'title': title,
+          'category': category
+        };
+
+        if(filter.length){
+          let filterObj=JSON.parse(decodeURIComponent(atob(filter)));
+          if(filterObj.v !== undefined){
+            fields[name]['filter']=filterObj.v;
+          }
+        }
+        if(ordType.length){
+          fields[name]['ordType']=ordType;
+        }
       });
-      //    l(fields);
 
       return fields;
     }
@@ -698,12 +735,28 @@
     //
     // Форма Настроить колонки - Нажатие на Сбросить
     $(ModalFilterSelectColumnsNode).on('click', '.btn-reset', function () {
-      //    deleteCookie('dTable');
-      thisDTable.dTable = JSON.parse(JSON.stringify(thisDTable.dTableDefault)); // Простое присвоение для объекта приводит к присвоению ссыли на объект
-      thisDTable.savedTableToCookie(thisDTable.dTable);
+      thisDTable.reset();
       ModalSelectColumns.hide();
-      thisDTable.loadTable();
     });
+
+    // Кнопка сброса dTable вне dTable - Нажатие
+    $('body').on('click', '.btn-dtable-reset', function () {
+      if($(this).attr('data-dtable-name') === dTableName){
+        // Слушаем все кнопки, применяем только к нужной dTable
+        thisDTable.reset();
+        return false;
+      }
+    });
+
+    /**
+     * Сброс текущей dTable до дефолтной, запись её в localStorage, reload dTable
+     */
+    this.reset = function () {
+      thisDTable.dTable = JSON.parse(JSON.stringify(thisDTable.dTableDefault)); // Простое присвоение для объекта приводит к присвоению ссылки на объект
+      thisDTable.savedTableToCookie(thisDTable.dTable);
+      thisDTable.loadTable();
+    }
+
     //
     // Форма фильтра fText - Нажатие на Применить
     $(ModalFilterTextNode).on('click', '.btn-primary', function () {
@@ -1118,7 +1171,7 @@
   
       let loadTableMethodXLS = 'toXls';
   
-      dTableXLS = JSON.parse(JSON.stringify(thisDTable.dTable)); // Простое присвоение для объекта приводит к присвоению ссыли на объект
+      dTableXLS = JSON.parse(JSON.stringify(thisDTable.dTable)); // Простое присвоение для объекта приводит к присвоению ссылки на объект
       dTableXLS.page = "1";
       dTableXLS.page_row_count = 1000000;
   
@@ -1166,6 +1219,11 @@
      * Задать ширину, Показать/Скрыть
      */
     function dTableScrollRefresh(dTableDOMObject){
+
+      if($(dTableDOMObject).find('.table-responsive').length === 0){
+        // Проверяем наличие элемента
+        return false;
+      }
 
       // Задать ширину
       let scrollWidth=$(dTableDOMObject).find('.table-responsive')[0].scrollWidth;
