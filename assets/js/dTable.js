@@ -561,22 +561,24 @@
 
         let dTableColumns = '';
         let isShow = dTableFields[key]['show'] == '1';
+        let title=dTableFields[key]['title'] || '';
+        let category=dTableFields[key]['category'] || '';
+        let ordType=dTableFields[key]['ordType'] || '';
 
         let filterObj=JSON.stringify({v:dTableFields[key]['filter']});
         let filterEncoded = btoa(encodeURIComponent(filterObj));
 
-        let ordType=dTableFields[key]['ordType'] || '';
 
-        dTableColumns += '<a href="#" class="dTableColumn list-group-item list-group-item-action d-flex" data-name="' + key + '" data-title="' + dTableFields[key]['title'] + '" data-category="' + dTableFields[key]['category'] + '" data-filter="' + filterEncoded + '" data-ord-type="' + ordType + '">';
+        dTableColumns += '<a href="#" class="dTableColumn list-group-item list-group-item-action d-flex" data-name="' + key + '" data-title="' + title + '" data-category="' + category + '" data-filter="' + filterEncoded + '" data-ord-type="' + ordType + '">';
         dTableColumns += '<i class="fa fa-arrows p-1 pe-2"></i>';
         // dTableColumns += '<input class="form-check-input" type="checkbox" value="" ' + checked + disabled + ' id="' + elementId + '">';
         dTableColumns += ' <div class="">';
-        dTableColumns += '<span class="columnTitle" title="' + dTableFields[key]['title'] + '">' +
-        dTableFields[key]['title'] +
+        dTableColumns += '<span class="columnTitle" title="' + title + '">' +
+        title +
           '</span>';
-          if (dTableFields[key]['ordType'] === 'asc') {
+          if (ordType === 'asc') {
             dTableColumns += '<i class="fa fa-long-arrow-up p-1 pe-2"></i>';
-          } else if (dTableFields[key]['ordType'] === 'desc') {
+          } else if (ordType === 'desc') {
             dTableColumns += '<i class="fa fa-long-arrow-down p-1 pe-2"></i>';
           }
           if ('filter' in dTableFields[key]) {
@@ -585,19 +587,18 @@
         dTableColumns += '</div>';
         //
         // Категория
-        let cat = dTableFields[key]['category'] || '';
         let categroyStyle = '';
-        if (cat.length) {
-          if (categroys.indexOf(cat) === -1) {
-            categroys.push(cat)
+        if (category.length) {
+          if (categroys.indexOf(category) === -1) {
+            categroys.push(category)
           }
-          let indexOfCat = categroys.indexOf(cat);
+          let indexOfCat = categroys.indexOf(category);
           let categroyColor = thisDTable.categroyColors[indexOfCat];
           categroyStyle = 'color:' + categroyColor;
         }
         // --Категория
         //
-        dTableColumns += `<div class="flex-fill text-end px-1 small" style="${categroyStyle}">${cat}</div>`;
+        dTableColumns += `<div class="flex-fill text-end px-1 small" style="${categroyStyle}">${category}</div>`;
         dTableColumns += '</a>';
   
         if (isShow) {
