@@ -536,6 +536,10 @@
 
       thisDTable.dTableSetsBlockUpdate();
 
+      let btnPull=$(ModalFilterSelectColumnsNode).find('.btn-pull');
+      $(btnPull).addClass('bg-warning-subtle');  // Временно подсвечиваем кнопку Загрузить...;
+      setTimeout(() => $(btnPull).removeClass('bg-warning-subtle'), 500); // Убираем подсвечивание через 1 сек
+
       return false;
     });
     // --Событие выбора набора колонок
