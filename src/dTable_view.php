@@ -165,6 +165,7 @@
             <div class="col-6 list-group connectedSortable columns-selected"></div>
             <div class="col-6 list-group connectedSortable columns-other"></div>
           </div>
+          <div class="dTableInfo"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary btn-reset" data-bs-dismiss="modal" title="Сбросить настройки">Сбросить <i class="fa fa-refresh ps-1"></i></button>

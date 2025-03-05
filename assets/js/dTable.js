@@ -322,6 +322,8 @@
   
       thisDTable.drawSettingsFields(thisDTable.dTable['fields']);
   
+      $(ModalFilterSelectColumnsNode).find('.dTableInfo').html(''); // Очистка информационного поля
+
       ModalSelectColumns.show();
   
       // Подгрузка Сохраненных наборов колонок, если они включены
@@ -451,6 +453,58 @@
       let dTableData=$(ModalFilterSelectColumnsNode).find('.dTableSavedSelect option:selected').attr('data-data');
       let savedFields=JSON.parse(dTableData).fields
       
+      // Валидация savedFields с исправлением несовпадающих полей
+
+      // Ищем не актуальные поля
+
+      let fieldsNotActual=[];
+      for (let keySaved in savedFields) {
+
+        let keyFound=false;
+        for (let keyCurrent in thisDTable.dTable.fields) {
+          if(keySaved === keyCurrent){
+            keyFound=true;
+          }
+        }
+        if(!keyFound){
+          // Поле не актуально, запоминаем и удаляем из объекта
+          fieldsNotActual.push(savedFields[keySaved].title);
+          delete savedFields[keySaved];
+        }
+
+      }
+
+      // Ищем новые поля
+      let fieldsNew=[];
+      for (let keyCurrent in thisDTable.dTable.fields) {
+
+        let keyFound=false;
+        for (let keySaved in savedFields) {
+          if(keySaved === keyCurrent){
+            keyFound=true;
+          }
+        }
+        if(!keyFound){
+          // Поле новое
+          fieldsNew.push(thisDTable.dTable.fields[keyCurrent].title);
+          savedFields[keyCurrent]=thisDTable.dTable.fields[keyCurrent];
+        }
+
+      }
+
+      let infoText='';
+      if(fieldsNotActual.length){
+        infoText+="<p>Были удалены колонки: <i>"+fieldsNotActual.join(', ')+'</i></p>';
+      }
+      if(fieldsNew.length){
+        infoText+="<p>Были добавлены колонки: <i>"+fieldsNew.join(', ')+'</i></p>';
+      }
+      if(infoText.length){
+        infoText='<div class="alert alert-warning alert-dismissible" role="alert"><p>Сохраненный набор колонок не соответствует текущему</p>'+infoText+'</div>';
+      }
+      $(ModalFilterSelectColumnsNode).find('.dTableInfo').html(infoText);
+      // --Валидация savedFields с исправлением несовпадающих полей
+
       thisDTable.drawSettingsFields(savedFields);
 
       return false;
