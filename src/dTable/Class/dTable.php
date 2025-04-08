@@ -128,18 +128,30 @@ class dTable {
             // что фильтр задан, хотя он и будет пустой
           echo '<div class="filterItem lh-lg" data-name="' . $fieldForView['name'] . '" data-type="' . $fieldForView['type'] . '">';
           echo $fieldForView['title'] .'<a href="#" class="ps-1 text-muted inline-block removeFilterItem" title="Очистить фильтр"><i class="fa fa-times"></i></a>'. ': ';
+          
           if ($fieldForView['type'] === 'fSelect') {
-            foreach ($fieldForView['filterTitleFull'] as $filterTitleFull) {
-              echo '<a class="p-1 removeFilterItemElement" href="#" data-id="' . $filterTitleFull['ID'] . '">';
-              echo '<span class="badge rounded-pill text-bg-success">' . $filterTitleFull['NAME'] . ' <i class="'.$this->styles['iClassX'].'"></i></span>';
+            $countFilterTitleFull=count($fieldForView['filterTitleFull']);
+            if($countFilterTitleFull === 1){
+              // Выбрано 1 значение из списка - показываем его 
+              foreach ($fieldForView['filterTitleFull'] as $filterTitleFull) {
+                echo '<a class="p-1 removeFilterItemElement" href="#" data-id="' . $filterTitleFull['ID'] . '">';
+                echo '<span class="badge rounded-pill text-bg-success">' . $filterTitleFull['NAME'] . ' <i class="'.$this->styles['iClassX'].'"></i></span>';
+                echo '</a>';
+              }
+            }else{
+              // Выбрано несколько значений - покажем количество
+              echo '<a class="p-1 removeFilterItem" href="#">';
+              echo '<span class="badge rounded-pill text-bg-warning">Выбрано: '.$countFilterTitleFull.' <i class="'.$this->styles['iClassX'].'"></i></span>';
               echo '</a>';
             }
           }
+
           if ($fieldForView['type'] === 'fText') {
             echo '<a href="#" class="removeFilterItemElement">';
             echo '<span class="badge rounded-pill text-bg-success">' . $fieldForView['filterTitleFull'] . ' <i class="'.$this->styles['iClassX'].'"></i></span>';
             echo '</a>';
           }
+
           if ($fieldForView['type'] === 'fDateInterval') {
             echo '<a href="#" class="removeFilterItemElement">';
             echo '<span class="badge rounded-pill text-bg-success">';
@@ -154,6 +166,7 @@ class dTable {
             echo '</span>';
             echo '</a>';
           }
+
           echo '</div>';
         }
       }
