@@ -167,6 +167,21 @@ class dTable {
             echo '</a>';
           }
 
+          if ($fieldForView['type'] === 'fInterval') {
+            echo '<a href="#" class="removeFilterItemElement">';
+            echo '<span class="badge rounded-pill text-bg-success">';
+            if (isset($fieldForView['filterTitleFull'][0])) {
+              echo $fieldForView['filterTitleFull'][0];
+              echo ' - ';
+            }
+            if (isset($fieldForView['filterTitleFull'][1])) {
+              echo $fieldForView['filterTitleFull'][1];
+            }
+            echo ' <i class="'.$this->styles['iClassX'].'"></i>';
+            echo '</span>';
+            echo '</a>';
+          }
+
           echo '</div>';
         }
       }
