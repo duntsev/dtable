@@ -121,7 +121,8 @@ class dTable {
       foreach ($data['fieldsForView'] as $fieldForView) {
         if (
           isset($fieldForView['filterTitleFull']) && !empty($fieldForView['filterTitleFull']) 
-          || !empty($fieldForView['filterValue']) && $fieldForView['filterValue'] !== 'null') {
+          || !empty($fieldForView['filterValue']) && $fieldForView['filterValue'] !== 'null' 
+          || $fieldForView['type'] === 'fText' && $fieldForView['filterValue'] === '0') {
             // В случае установки фильтров в fSelect с помощью GET-параметров
             // возможны случаи, когда установленный filterValue будет отсутствовать 
             // среди возможных значений. В этом случае нам надо всё равно показать,
@@ -278,7 +279,7 @@ class dTable {
                     . 'data-type="' . $fieldForView['type'] . '" '
                     . 'data-filter-value="' . $fieldForView['filterValue'] . '" '
                     . 'data-filter-title="' . $fieldForView['filterTitle'] . '">';
-                  if (empty($fieldForView['filterTitle'])) {
+                  if (empty($fieldForView['filterTitle']) && $fieldForView['filterTitle'] !== '0') {
                     echo '<i class="'.$this->styles['iClassFilter'].'"></i>';
                   } else {
                     echo '<i class="'.$this->styles['iClassFilter'].' text-success"></i>';
