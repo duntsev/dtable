@@ -1,20 +1,20 @@
 <?php
 namespace dTable\Class;
- 
+
 /**
  * Класс для создания HTML разметки таблицы dTable
- * 
+ *
  * Позволяет "рисовать" таблицу dTable с помощью вызова
  * только одного метода этого класса:
  * dTable()
- * 
+ *
  * Вызывается из View с параметрами, полученными в Model
  * Параметры формируются в методе, в котором происходит сам запрос.
- * 
- * Здесь описана "стандартная" таблица. 
+ *
+ * Здесь описана "стандартная" таблица.
  * Если нужна другая структура, можно сделать другой класс или
  * использовать методы этого класса как основу
- * 
+ *
  * Версия: 1
  * Дата: 2023-11-13
  */
@@ -35,7 +35,8 @@ class dTable {
     private $actionsUrl = ''; // Ссылка для страницы с массовыми операциями
     private $actions = []; // Массив для массовых операций
     private $styles = []; // Массив стилей для отрисовки элементов таблицы
-  
+    private $rowClassCallback = null; //  колбэк для определения класса строки
+
     /**
      * @param array $data Массив
      * $data['row_count'] integer Количество строк всего
@@ -50,29 +51,29 @@ class dTable {
      * Для fSelect: 'null' или '2,4,5,6'                  | Строка со значениями фильтра через запятую, или 'null'
      * Для fText: null или 'Программирование'             | Строка со значением фильтра, или null
      * Для fDateInterval: '' или '02.11.2023,04.11.2023'  | Строка со значениями фильтра через запятую, или ''
-     * $data['fieldsForView']['filterTitle'] string 
+     * $data['fieldsForView']['filterTitle'] string
      * Пример
      * Для fSelect: '' или '2 выбрано'                      | Где 2 - количество выбранных значений в select
      * Для fText: null или 'Программирование'               | Строка со значением фильтра, или null
      * Для fDateInterval: '' или '02.11.2023 - 04.11.2023'  | Строка со значениями фильтра через запятую, или ''
-     * $data['fieldsForView']['filterTitleFull'] string 
+     * $data['fieldsForView']['filterTitleFull'] string
      * Пример
      * Для fSelect: array() или array(0=>array('ID'=>1, 'NAME'=>'Очное'))   | Массив-справочник вида ID=>NAME
      * Для fText: '' или 'Программирование'                                 | Строка со значением фильтра, или ''
      * Для fDateInterval: '' или array('02.11.2023','04.11.2023')           | Массив со значениями, или пустая строка
      * $data['fieldsForView']['ordType'] string Тип сортировки: 'asc', 'desc'. По умолчанию 'asc'
-     * 
+     *
      * @param array $params Параметры - массив значений различных параметров
      * Возможные параметры:
      * isExportXlsShowButton bool Показывать ли кнопку "Экспорт в xlsx"
      * withCheckboxes bool Показывать ли колонку с чекбоксами
      * trAttributes array Массив массивов атрибутов для tr
-     * Пример: array(array('attrName' => 'data-id', 'fieldName'=>'ID')) 
+     * Пример: array(array('attrName' => 'data-id', 'fieldName'=>'ID'))
      * где attrName - атрибут который будет создан у tr
      * где fieldName - название поля из запроса которое будет значением атрибута. Это поле должно быть в запросе в SELECT
      * tdAHref string Ссылка для каждой ячейки, кроме кнопок
      * additionalColumns array Массив строк. Отображается в конце таблицы в виде дополнительных колонок
-     * Пример: 
+     * Пример:
      * array(
      *  '<button class="some-action">Нажми меня</button>',
      *  '<a class="ms-1" href="/ModerAchievementBak/CheckAchievement?applicationId={ID}"><i class="fa fa-pencil pe-2">Проверить ИД</i></a>'
@@ -95,15 +96,16 @@ class dTable {
       $this->actionsUrl = isset($params['actionsUrl']) ? (string)$params['actionsUrl'] : '';
       $this->actions = isset($params['actions']) ? (array)$params['actions'] : [];
       $this->styles = isset($params['styles']) ? (array)$params['styles'] : [];
+      $this->rowClassCallback = isset($params['rowClassCallback']) ? $params['rowClassCallback'] : null;
     }
-  
+
     /**
      * Вывод всей таблицы
      * Блоки которые будут выведены:
      * 1. Блок фильтров
      * 2. Сама таблица
      * 3. Навигация
-     * 
+     *
      * Можно пользоваться блоками по отдельности, вызывая конкретные методы
      */
     function dTable() {
@@ -111,29 +113,29 @@ class dTable {
       $this->dTableTable($this->data, $this->buttons);
       $this->pageNavigation($this->data);
     }
-  
+
     /**
      * Вывод блока фильтров
      */
     function dTableFilterView($data) {
       echo '<div class="filterView">';
-  
+
       foreach ($data['fieldsForView'] as $fieldForView) {
         if (
-          isset($fieldForView['filterTitleFull']) && !empty($fieldForView['filterTitleFull']) 
-          || !empty($fieldForView['filterValue']) && $fieldForView['filterValue'] !== 'null' 
+          isset($fieldForView['filterTitleFull']) && !empty($fieldForView['filterTitleFull'])
+          || !empty($fieldForView['filterValue']) && $fieldForView['filterValue'] !== 'null'
           || $fieldForView['type'] === 'fText' && $fieldForView['filterValue'] === '0') {
             // В случае установки фильтров в fSelect с помощью GET-параметров
-            // возможны случаи, когда установленный filterValue будет отсутствовать 
+            // возможны случаи, когда установленный filterValue будет отсутствовать
             // среди возможных значений. В этом случае нам надо всё равно показать,
             // что фильтр задан, хотя он и будет пустой
           echo '<div class="filterItem lh-lg" data-name="' . $fieldForView['name'] . '" data-type="' . $fieldForView['type'] . '">';
           echo $fieldForView['title'] .'<a href="#" class="ps-1 text-muted inline-block removeFilterItem" title="Очистить фильтр"><i class="fa fa-times"></i></a>'. ': ';
-          
+
           if ($fieldForView['type'] === 'fSelect') {
             $countFilterTitleFull=count($fieldForView['filterTitleFull']);
             if($countFilterTitleFull === 1){
-              // Выбрано 1 значение из списка - показываем его 
+              // Выбрано 1 значение из списка - показываем его
               foreach ($fieldForView['filterTitleFull'] as $filterTitleFull) {
                 echo '<a class="p-1 removeFilterItemElement" href="#" data-id="' . $filterTitleFull['ID'] . '">';
                 echo '<span class="badge rounded-pill text-bg-success">' . $filterTitleFull['NAME'] . ' <i class="'.$this->styles['iClassX'].'"></i></span>';
@@ -188,16 +190,16 @@ class dTable {
       }
       echo '</div>';
     }
-  
+
     /**
      * Вывод самой таблицы с кнопкой Настроить
      */
     function dTableTable($data, $buttons) {
       $countButtons = count($buttons);
   ?>
-  
+
       <div class="d-flex align-items-center py-1 dTableActions">
-  
+
         <div class="selected-rows input-group input-group-sm my-1" style="width:auto;display:none">
           <!-- <button class="btn btn-outline-secondary" type="button"><i class="<?php //echo $this->styles['iClassX']; ?>"></i></button> -->
           <label class="input-group-text" for="">
@@ -205,7 +207,7 @@ class dTable {
             Отмечено строк: <span class="selected-rows-count ps-1"></span>
           </label>
           <label class="input-group-text" for="">Действия для отмеченных</label>
-  
+
           <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
             <span class="visually-hidden">Toggle Dropdown</span>
           </button>
@@ -216,9 +218,9 @@ class dTable {
             }
             ?>
           </ul>
-  
+
         </div>
-  
+
         <a class="SelectColumns ms-auto" href="#">
           Настроить <i class="<?php echo $this->styles['iClassSettings']; ?>"></i>
         </a>
@@ -298,16 +300,24 @@ class dTable {
                 }
               }
               ?>
-  
+
             </tr>
           </thead>
           <tbody>
             <?php
             foreach ($data['table'] as $row) {
-  
+
               $rowId = $row['ID'];
-  
-  
+
+              $rowClass = '';
+
+              if ($this->rowClassCallback && is_callable($this->rowClassCallback)) {
+                $callbackClass = call_user_func($this->rowClassCallback, $row);
+                if ($callbackClass) {
+                    $rowClass = $callbackClass;
+                }
+            }
+
               // Добавление атрибутов
               $attrString = '';
               if (!empty($this->trAttributes)) {
@@ -318,10 +328,11 @@ class dTable {
                 $attrString = implode(' ', $attrArray);
               }
               // --Добавление атрибутов
-  
+
               // echo '<tr data-id="' . $rowId . '" data-name="' . $row['NAME'] . '">';
-              echo '<tr ' . $attrString . '>';
-  
+              $classAttr = $rowClass ? ' class="' . $rowClass . '"' : '';
+              echo '<tr ' . $attrString . $classAttr . '>';
+
               if ($this->withCheckboxes) {
                 echo '<td>' . '<input type="checkbox" class="check_row">' . '</td>';
               }
@@ -341,7 +352,7 @@ class dTable {
                 echo '<td class="text-muted">' . $row['RowNumber'] . '</td>';
               }
               // echo '<td>' . $rowId . '</td>';
-  
+
               foreach ($data['fieldsForView'] as $fieldForView) {
                 if ($fieldForView['show'] !== '1') continue;
                 echo '<td>';
@@ -369,20 +380,20 @@ class dTable {
       </div>
     <?php
     }
-  
+
     /**
      * Вывод блока навигации по страницам
-     * 
+     *
      * @param array $data
      * $data["page_row_count"] - Количество строк на странице
      * $data["row_count"] - Количество строк всего
      * $data["page"] - Текущая страница
-     * 
+     *
      */
     function pageNavigation($data) {
-  
+
       $page_row_count = $data["page_row_count"];
-  
+
     ?>
       <nav class="d-flex flex-wrap dTableNav" style="align-items: center;" aria-label="Page navigation example">
         <ul class="pagination pagination-sm m-0 me-4 my-2">
@@ -432,7 +443,7 @@ class dTable {
       </nav>
   <?php
     }
-  
+
     /**
      * Генерация страниц для блока навигации по страницам
      * @param integer $row_count Количество строк всего
@@ -463,10 +474,10 @@ class dTable {
       } else {
         $result = $pages;
       }
-  
+
       return array("array" => $result, "count" => $pages_count);
     }
-  
+
     /**
      * Подставляет в шаблон строки переменные из массива
      * Например из: http://site/module/action?id={$ID}
@@ -496,4 +507,3 @@ class dTable {
         }
     }
   }
-  
